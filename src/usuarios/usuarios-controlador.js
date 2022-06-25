@@ -2,7 +2,7 @@ const Usuario = require('./usuarios-modelo');
 const { InvalidArgumentError, InternalServerError } = require('../erros');
 const jwt = require('jsonwebtoken');
 
-const blacklist = require('../../redis/manipula-blacklist');
+const blocklist = require('../../redis/manipula-blocklist');
 
 function criaTokenJWT(usuario){
   const cincoDiasEmMilissegundos = 432000000;
@@ -15,7 +15,7 @@ function criaTokenJWT(usuario){
 }
 
 module.exports = {
-  adiciona: async (req, res) => {
+  async adiciona(req, res) {
     const { nome, email, senha } = req.body;
 
     try {
@@ -39,17 +39,17 @@ module.exports = {
     }
   },
  
-  login:(req, res)=>{
+  async login(req, res){
     const token = criaTokenJWT(req.user);
     console.log(token);
     res.set('Authorization',token);
     res.status(204).send();
   },
 
-  logout: async(req,res)=>{
+  async logout(req,res){
     const token = req.token;
       try{
-          await blacklist.adiciona(token);
+          await blocklist.adiciona(token);
           res.status(204).send();
       }
       catch(erro){
@@ -58,12 +58,12 @@ module.exports = {
 
   },
 
-  lista: async (req, res) => {
+  async lista(req, res) {
     const usuarios = await Usuario.lista();
     res.json(usuarios);
   },
 
-  deleta: async (req, res) => {
+  async deleta(req, res) {
     const usuario = await Usuario.buscaPorId(req.params.id);
     try {
       await usuario.deleta();
